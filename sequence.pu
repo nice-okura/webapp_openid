@@ -1,0 +1,34 @@
+@startuml
+title openid connect APIたたく
+actor user
+Participant Webブラウザ as br
+Participant Webサーバ as srv
+Participant 外部API as api
+Participant Google認証基盤 as cert
+
+autonumber
+
+user -> br : 「ログイン」ボタン押下
+activate br
+    br -> srv : ログイン開始([GET]/loginStart)\n[リクエストヘッダ] authRequestKey:認証キー(UUID)
+    activate srv
+        srv -> api : ログイン認証API([GET]/loginCertificate)
+        activate api
+            api -> cert : 認証リクエスト送信
+
+            api -> srv : 302 Location: https://google
+
+        deactivate api
+        srv -> br : 302 Location: https://google
+    deactivate srv
+    br -> cert : 取得したリダイレクト先(Google認証画面)に遷移
+    cert -> br : リダイレクト先画面を表示
+    user -> br : ID/PASSを入力し、ログイン
+    br -> cert : ログイン開始
+    activate cert
+        cert -> br : ログイン完了
+    deactivate cert
+    br -> user : ログイン完了
+deactivate br
+
+@enduml
